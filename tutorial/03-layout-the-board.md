@@ -113,9 +113,9 @@ Three parameters carry the weight:
   and figure out the rest." The spacing parameters put 8px gutters between cells,
   which is where the grid lines come from — we never draw any.
 - **`itemCount: 9`** — how many cells.
-- **`itemBuilder`** — a function called with each index, returning that cell's
-  widget. This is the payoff from Lesson 01's flat list: index 0-8 maps straight
-  onto grid position with no arithmetic.
+- **`itemBuilder`** — a function that turns an index into that cell's widget.
+  This is the payoff from Lesson 01's flat list: index 0-8 maps straight onto
+  grid position with no arithmetic.
 
 `physics: NeverScrollableScrollPhysics()` disables scrolling. A `GridView`
 assumes it's scrollable; ours is exactly the size of its contents, so bouncing
@@ -124,6 +124,49 @@ would just look broken.
 > **Android note:** `itemBuilder` is your `RecyclerView.Adapter`, minus the
 > ViewHolder ceremony. Same lazy-construction idea — build the cell when it's
 > needed.
+
+### How `itemBuilder` "knows" about the board
+
+Worth slowing down on, because nothing in these two lines loops over `board`:
+
+```dart
+itemCount: 9,
+itemBuilder: (context, index) => Square(value: board[index]),
+```
+
+Three separate things are happening.
+
+**`itemCount` defines the range.** The `GridView` is the thing doing the
+iterating, and it knows how far to go because you told it `9`. `board` plays no
+part in that decision. Write `itemCount: 4` and it only ever asks for four
+squares — the last five entries of `board` are never read.
+
+**`itemBuilder` is a function you hand over, not a loop body you run.** That
+arrow expression creates an anonymous function taking `(BuildContext, int)` and
+returning a `Widget`, and stores it on the `GridView`. You never call it.
+Later, when Flutter lays out the grid and decides it needs the cell at position
+3, *it* calls your function with `index: 3`. You wrote the recipe; the framework
+owns the loop. That's why there is no `for` anywhere on screen.
+
+**`board` is visible inside the function because of closure.** The function is
+defined inside `build()`, where the local `board` is in scope, so it captures
+that variable. When Flutter later calls it with `3`, the body evaluates
+`board[3]` → `''`. The only thing connecting the grid to the board is that you
+wrote `board[index]` in the body — swap it for `Square(value: 'hi')` and you get
+nine identical squares with `board` never touched.
+
+So the model is: **`itemCount` sets the range, Flutter runs the loop, your
+closure maps an index to a widget.**
+
+Two consequences worth internalizing now, because they bite later:
+
+- `itemCount` and `board.length` are coupled only by your discipline. Once the
+  board becomes dynamic, `itemCount: board.length` is safer than a hardcoded
+  `9` — a mismatch is a runtime `RangeError`, not a compile error.
+- `itemBuilder` can be called repeatedly, at unpredictable times, and out of
+  order. All nine of ours are on screen, so they get built up front, but a long
+  scrolling list only builds what's visible. Keep it cheap and side-effect-free
+  — never mutate state or kick off work inside it.
 
 ### Extracting the Square widget
 
@@ -157,12 +200,14 @@ Hot reload is instant, so poke at it:
 - Change `aspectRatio` to `0.5` and watch the board go tall.
 - Bump `mainAxisSpacing` to `24` for fat gutters.
 - Delete `physics:` and drag the board to see why it's there.
+- Swap `board[index]` for `'$index'` to watch the indices Flutter hands you.
 
 ## Check yourself
 
 1. Why is `Square.value` `final`?
 2. What actually draws the grid lines?
 3. `board` is `const` here. Why will that have to change?
+4. What decides how many times `itemBuilder` runs?
 
 <details>
 <summary>Answers</summary>
@@ -173,6 +218,9 @@ Hot reload is instant, so poke at it:
    background show through between rounded squares.
 3. Because the player is about to start changing it. `const` demands a
    compile-time value, and a board that responds to taps isn't one.
+4. `itemCount` — not `board`. The `GridView` owns the loop and calls your
+   closure once per index it needs; `board` only enters the picture because the
+   closure body happens to read it.
 
 </details>
 

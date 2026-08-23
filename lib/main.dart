@@ -29,9 +29,49 @@ class GameScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const board = ['X', 'O', 'X', '', 'O', '', '', '', 'X'];
     return Scaffold(
       appBar: AppBar(title: const Text('Tic Tac Toe')),
-      body: const Center(child: Text('Board goes here')),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: AspectRatio(
+            aspectRatio: 1,
+            child: GridView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+              ),
+              itemCount: 9,
+              itemBuilder: (context, index) => Square(value: board[index]),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class Square extends StatelessWidget {
+  const Square({super.key, required this.value});
+
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Center(
+        child: Text(
+          value,
+          style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
+        ),
+      ),
     );
   }
 }
