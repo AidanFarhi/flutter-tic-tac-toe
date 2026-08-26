@@ -33,11 +33,15 @@ class GameScreen extends StatefulWidget {
 
 class _GameScreenState extends State<GameScreen> {
   final List<String> _board = List.filled(9, '');
+  String _currentPlayer = 'X';
+
+  String get _statusText => "Player $_currentPlayer's turn";
 
   void _handleTap(int index) {
     if (_board[index] != '') return;
     setState(() {
-      _board[index] = 'X';
+      _board[index] = _currentPlayer;
+      _currentPlayer = _currentPlayer == 'X' ? 'O' : 'X';
     });
   }
 
@@ -46,22 +50,31 @@ class _GameScreenState extends State<GameScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Tic Tac Toe')),
       body: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: AspectRatio(
-            aspectRatio: 1,
-            child: GridView.builder(
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(_statusText, style: Theme.of(context).textTheme.headlineSmall),
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: GridView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    mainAxisSpacing: 8,
+                    crossAxisSpacing: 8,
+                  ),
+                  itemCount: 9,
+                  itemBuilder: (context, index) => Square(
+                    value: _board[index],
+                    onTap: () => _handleTap(index),
+                  ),
+                ),
               ),
-              itemCount: 9,
-              itemBuilder: (context, index) =>
-                  Square(value: _board[index], onTap: () => _handleTap(index)),
             ),
-          ),
+          ],
         ),
       ),
     );
