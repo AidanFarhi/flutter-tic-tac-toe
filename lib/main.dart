@@ -24,12 +24,25 @@ class TicTacToeApp extends StatelessWidget {
   }
 }
 
-class GameScreen extends StatelessWidget {
+class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
 
   @override
+  State<GameScreen> createState() => _GameScreenState();
+}
+
+class _GameScreenState extends State<GameScreen> {
+  final List<String> _board = List.filled(9, '');
+
+  void _handleTap(int index) {
+    if (_board[index] != '') return;
+    setState(() {
+      _board[index] = 'X';
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    const board = ['X', 'O', 'X', '', 'O', '', '', '', 'X'];
     return Scaffold(
       appBar: AppBar(title: const Text('Tic Tac Toe')),
       body: Center(
@@ -45,7 +58,8 @@ class GameScreen extends StatelessWidget {
                 crossAxisSpacing: 8,
               ),
               itemCount: 9,
-              itemBuilder: (context, index) => Square(value: board[index]),
+              itemBuilder: (context, index) =>
+                  Square(value: _board[index], onTap: () => _handleTap(index)),
             ),
           ),
         ),
@@ -55,21 +69,25 @@ class GameScreen extends StatelessWidget {
 }
 
 class Square extends StatelessWidget {
-  const Square({super.key, required this.value});
+  const Square({super.key, required this.value, required this.onTap});
 
   final String value;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Center(
-        child: Text(
-          value,
-          style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Center(
+          child: Text(
+            value,
+            style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
+          ),
         ),
       ),
     );
