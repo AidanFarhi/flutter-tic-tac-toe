@@ -24,6 +24,17 @@ class TicTacToeApp extends StatelessWidget {
   }
 }
 
+const List<List<int>> winningLines = [
+  [0, 1, 2], // top row
+  [3, 4, 5], // middle row
+  [6, 7, 8], // bottom row
+  [0, 3, 6], // left column
+  [1, 4, 7], // middle column
+  [2, 5, 8], // right column
+  [0, 4, 8], // diagonal
+  [2, 4, 6], // anti-diagonal
+];
+
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
 
@@ -34,14 +45,34 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> {
   final List<String> _board = List.filled(9, '');
   String _currentPlayer = 'X';
+  String? _winner;
 
-  String get _statusText => "Player $_currentPlayer's turn";
+  bool get _isDraw => _winner == null && !_board.contains('');
+
+  String get _statusText {
+    if (_winner != null) return 'Player $_winner wins!';
+    if (_isDraw) return "It's a draw";
+    return "Player $_currentPlayer's turn";
+  }
+
+  String? _findWinner() {
+    for (final line in winningLines) {
+      final first = _board[line[0]];
+      if (first != '' && first == _board[line[1]] && first == _board[line[2]]) {
+        return first;
+      }
+    }
+    return null;
+  }
 
   void _handleTap(int index) {
-    if (_board[index] != '') return;
+    if (_board[index] != '' || _winner != null || _isDraw) return;
     setState(() {
       _board[index] = _currentPlayer;
-      _currentPlayer = _currentPlayer == 'X' ? 'O' : 'X';
+      _winner = _findWinner();
+      if (_winner == null) {
+        _currentPlayer = _currentPlayer == 'X' ? 'O' : 'X';
+      }
     });
   }
 
