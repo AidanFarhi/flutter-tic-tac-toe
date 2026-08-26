@@ -43,7 +43,7 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> {
-  final List<String> _board = List.filled(9, '');
+  List<String> _board = List.filled(9, '');
   String _currentPlayer = 'X';
   String? _winner;
 
@@ -76,6 +76,14 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
+  void _reset() {
+    setState(() {
+      _board = List.filled(9, '');
+      _currentPlayer = 'X';
+      _winner = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -105,6 +113,8 @@ class _GameScreenState extends State<GameScreen> {
                 ),
               ),
             ),
+            const SizedBox(height: 24),
+            FilledButton(onPressed: _reset, child: const Text('Reset')),
           ],
         ),
       ),
